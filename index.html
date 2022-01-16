@@ -1,7 +1,71 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
+   <style type="text/css">
+    :root {
+      --tile-empty-bg: white;
+      --tile-empty-fg: black;
+      --tile-empty-border: #d3d6da;
+      --tile-present-bg: #c9b458;
+      --tile-present-fg: white;
+      --tile-correct-bg: #6aaa64;
+      --tile-correct-fg: white;
+      --tile-absent-bg: #787c7e;
+      --tile-absent-fg: white;
+      --tile-size: 62px;
+      --tile-border-size: 2px;
+      --grid-gap: 5px;
+      font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .game {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: var(--grid-gap);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--grid-gap);
+    }
+
+    .tile {
+      height: var(--tile-size);
+      width: var(--tile-size);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-transform: uppercase;
+      font-size: 2rem;
+      font-weight: bold;
+      box-sizing: border-box;
+    }
+
+    .tile[data-status="present"] {
+      background-color: var(--tile-present-bg);
+      color: var(--tile-present-fg);
+    }
+    .tile[data-status="correct"] {
+      background-color: var(--tile-correct-bg);
+      color: var(--tile-correct-fg);
+    }
+    .tile[data-status="empty"] {
+      background-color: var(--tile-empty-bg);
+      color: var(--tile-empty-fg);
+      border: var(--tile-border-size) solid var(--tile-empty-border);
+    }
+    .tile[data-status="absent"] {
+      background-color: var(--tile-absent-bg);
+      color: var(--tile-absent-fg);
+    }
+  </style>
+   <meta charset="utf-8" />
     <title>Yew App</title>
   </head>
 </html>
