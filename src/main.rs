@@ -1,8 +1,11 @@
+use rand::{prelude::IteratorRandom, thread_rng};
 use std::collections::HashMap;
 #[allow(unused_imports)]
 use web_sys::console;
 
 use yew::{html::ImplicitClone, prelude::*};
+
+const WORD_LIST: &'static str = include_str!("awords.txt");
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum CellValue {
@@ -119,7 +122,7 @@ fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
 
 struct Paudle {
     word: String,
-    guesses: Vec<String>,
+    guesses: Vec<Vec<CellValue>>,
     current_guess: String,
     word_length: usize,
     max_guesses: usize,
@@ -137,15 +140,11 @@ impl Component for Paudle {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let guesses = vec![
-            "poops".to_string(),
-            "pepis".to_string(),
-            "bepos".to_string(),
-            "ppsps".to_string(),
-        ];
+        let word_choices = WORD_LIST.lines();
+        let word = word_choices.choose(&mut thread_rng()).unwrap().to_string();
         Self {
-            word: "poops".to_string(),
-            guesses,
+            word,
+            guesses: vec![],
             current_guess: String::new(),
             word_length: 5,
             max_guesses: 6,
@@ -164,9 +163,17 @@ impl Component for Paudle {
                 true
             }
             PaudleMsg::Submit => {
-                if self.current_guess.len() == self.word_length {
-                    self.guesses.push(self.current_guess.to_lowercase());
+                if self.current_guess.len() == self.word_length
+                    && self.guesses.len() < self.max_guesses
+                {
+                    let new_guess =
+                        create_row_props(&self.word, &self.current_guess.to_lowercase());
+                    let correct = new_guess.iter().all(|g| matches!(g, CellValue::Correct(_)));
+                    self.guesses.push(new_guess);
                     self.current_guess = String::new();
+                    if self.guesses.len() == self.max_guesses || correct {
+                        console::log_1(&format!("Word: {}", self.word).into());
+                    }
                     true
                 } else {
                     false
@@ -178,10 +185,7 @@ impl Component for Paudle {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let guesses = self.guesses.clone();
         let mut rows = vec![vec![CellValue::Empty; self.word_length]; self.max_guesses];
-        let mut filled_rows = guesses
-            .iter()
-            .map(|guess| create_row_props(&self.word, guess))
-            .collect::<Vec<_>>();
+        let mut filled_rows = guesses.iter().cloned().collect::<Vec<_>>();
         if filled_rows.len() < self.max_guesses {
             let mut guess_row = vec![CellValue::Typing(' '); self.word_length];
             for (idx, c) in self.current_guess.chars().enumerate() {
@@ -201,6 +205,12 @@ impl Component for Paudle {
             }
             if &e.key() == "Enter" {
                 return Some(PaudleMsg::Submit);
+            }
+            if e.key().len() > 1 {
+                return None;
+            }
+            if e.ctrl_key() || e.alt_key() || e.meta_key() {
+                return None;
             }
             if let Some(c) = e.key().chars().next() {
                 if c.is_alphabetic() {
