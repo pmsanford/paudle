@@ -225,9 +225,11 @@ impl Component for Paudle {
 
         // tabIndex=0 for keyboard events: https://stackoverflow.com/questions/43503964/onkeydown-event-not-working-on-divs-in-react/44434971#44434971
         html! {
-            <div tabIndex=0 onkeyup={on_keypress} class="wrapper">
-                <div class="game">
-                    {rows.into_iter().map(|r| html! { <PaudleRow values={r} /> }).collect::<Html>()}
+            <div tabIndex=0 onkeyup={on_keypress} class="page">
+                <div class="wrapper">
+                    <div class="game">
+                        {rows.into_iter().map(|r| html! { <PaudleRow values={r} /> }).collect::<Html>()}
+                    </div>
                 </div>
             </div>
         }
