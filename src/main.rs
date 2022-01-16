@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+#[allow(unused_imports)]
+use web_sys::console;
 
 use yew::{html::ImplicitClone, prelude::*};
 
@@ -74,11 +76,6 @@ impl Component for PaudleRow {
     }
 }
 
-struct Paudle {
-    word: String,
-    guesses: Vec<String>,
-}
-
 fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
     let mut vals = Vec::with_capacity(word.len());
     let mut counts = word
@@ -120,8 +117,22 @@ fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
     vals.into_iter().map(Option::unwrap).collect()
 }
 
+struct Paudle {
+    word: String,
+    guesses: Vec<String>,
+    current_guess: String,
+    word_length: usize,
+    max_guesses: usize,
+}
+
+enum PaudleMsg {
+    TypeLetter(char),
+    Backspace,
+    Submit,
+}
+
 impl Component for Paudle {
-    type Message = ();
+    type Message = PaudleMsg;
 
     type Properties = ();
 
@@ -135,20 +146,76 @@ impl Component for Paudle {
         Self {
             word: "poops".to_string(),
             guesses,
+            current_guess: String::new(),
+            word_length: 5,
+            max_guesses: 6,
         }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            PaudleMsg::TypeLetter(c) if self.current_guess.len() < self.word_length => {
+                self.current_guess.push(c);
+                true
+            }
+            PaudleMsg::TypeLetter(_) => false,
+            PaudleMsg::Backspace => {
+                self.current_guess.pop();
+                true
+            }
+            PaudleMsg::Submit => {
+                if self.current_guess.len() == self.word_length {
+                    self.guesses.push(self.current_guess.to_lowercase());
+                    self.current_guess = String::new();
+                    true
+                } else {
+                    false
+                }
+            }
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let guesses = self.guesses.clone();
-        let filled_rows = guesses
+        let mut rows = vec![vec![CellValue::Empty; self.word_length]; self.max_guesses];
+        let mut filled_rows = guesses
             .iter()
-            .map(|guess| create_row_props(&self.word, guess));
-        let mut rows = vec![vec![CellValue::Empty; 5]; 6];
-        for (i, val) in filled_rows.enumerate() {
+            .map(|guess| create_row_props(&self.word, guess))
+            .collect::<Vec<_>>();
+        if filled_rows.len() < self.max_guesses {
+            let mut guess_row = vec![CellValue::Typing(' '); self.word_length];
+            for (idx, c) in self.current_guess.chars().enumerate() {
+                guess_row[idx] = CellValue::Typing(c);
+            }
+            filled_rows.push(guess_row);
+        }
+        for (i, val) in filled_rows.into_iter().enumerate() {
             rows[i] = val;
         }
+
+        let link = ctx.link();
+
+        let on_keypress = link.batch_callback(|e: KeyboardEvent| {
+            if &e.key() == "Backspace" {
+                return Some(PaudleMsg::Backspace);
+            }
+            if &e.key() == "Enter" {
+                return Some(PaudleMsg::Submit);
+            }
+            if let Some(c) = e.key().chars().next() {
+                if c.is_alphabetic() {
+                    Some(PaudleMsg::TypeLetter(c))
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        });
+
+        // tabIndex=0 for keyboard events: https://stackoverflow.com/questions/43503964/onkeydown-event-not-working-on-divs-in-react/44434971#44434971
         html! {
-            <div class="wrapper">
+            <div tabIndex=0 onkeyup={on_keypress} class="wrapper">
                 <div class="game">
                     {rows.into_iter().map(|r| html! { <PaudleRow values={r} /> }).collect::<Html>()}
                 </div>
