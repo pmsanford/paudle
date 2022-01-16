@@ -166,6 +166,10 @@ impl Component for Paudle {
                 if self.current_guess.len() == self.word_length
                     && self.guesses.len() < self.max_guesses
                 {
+                    if !WORD_LIST.contains(&self.current_guess) {
+                        console::log_1(&"Not in word list".into());
+                        return false;
+                    }
                     let new_guess =
                         create_row_props(&self.word, &self.current_guess.to_lowercase());
                     let correct = new_guess.iter().all(|g| matches!(g, CellValue::Correct(_)));
