@@ -1,3 +1,5 @@
+use crate::PaudleMsg;
+
 use super::key::{Key, KeyType};
 use super::keyboard_status::KeyboardStatus;
 use yew::prelude::*;
@@ -7,6 +9,7 @@ pub struct Keyboard;
 #[derive(Properties, PartialEq)]
 pub struct KeyboardProperties {
     pub keys: KeyboardStatus,
+    pub key_press: Callback<PaudleMsg>,
 }
 
 impl Component for Keyboard {
@@ -23,38 +26,38 @@ impl Component for Keyboard {
         <div class="wrapper">
           <div class="keyboard">
             <div class="keyboard-row">
-              <Key def={ctx.props().keys.get_status('Q')} />
-              <Key def={ctx.props().keys.get_status('W')} />
-              <Key def={ctx.props().keys.get_status('E')} />
-              <Key def={ctx.props().keys.get_status('R')} />
-              <Key def={ctx.props().keys.get_status('T')} />
-              <Key def={ctx.props().keys.get_status('Y')} />
-              <Key def={ctx.props().keys.get_status('U')} />
-              <Key def={ctx.props().keys.get_status('I')} />
-              <Key def={ctx.props().keys.get_status('O')} />
-              <Key def={ctx.props().keys.get_status('P')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('Q')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('W')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('E')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('R')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('T')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('Y')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('U')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('I')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('O')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('P')} />
             </div>
             <div class="keyboard-row">
-              <Key def={ctx.props().keys.get_status('A')} />
-              <Key def={ctx.props().keys.get_status('S')} />
-              <Key def={ctx.props().keys.get_status('D')} />
-              <Key def={ctx.props().keys.get_status('F')} />
-              <Key def={ctx.props().keys.get_status('G')} />
-              <Key def={ctx.props().keys.get_status('H')} />
-              <Key def={ctx.props().keys.get_status('J')} />
-              <Key def={ctx.props().keys.get_status('K')} />
-              <Key def={ctx.props().keys.get_status('L')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('A')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('S')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('D')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('F')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('G')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('H')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('J')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('K')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('L')} />
             </div>
             <div class="keyboard-row">
-              <Key def={KeyType::Enter} />
-              <Key def={ctx.props().keys.get_status('Z')} />
-              <Key def={ctx.props().keys.get_status('X')} />
-              <Key def={ctx.props().keys.get_status('C')} />
-              <Key def={ctx.props().keys.get_status('V')} />
-              <Key def={ctx.props().keys.get_status('B')} />
-              <Key def={ctx.props().keys.get_status('N')} />
-              <Key def={ctx.props().keys.get_status('M')} />
-              <Key def={KeyType::Backspace} />
+              <Key key_press={ctx.props().key_press.clone()} def={KeyType::Enter} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('Z')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('X')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('C')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('V')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('B')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('N')} />
+              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('M')} />
+              <Key key_press={ctx.props().key_press.clone()} def={KeyType::Backspace} />
             </div>
           </div>
         </div>

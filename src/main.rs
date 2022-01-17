@@ -136,7 +136,7 @@ struct Paudle {
     bad_guess: bool,
 }
 
-enum PaudleMsg {
+pub enum PaudleMsg {
     TypeLetter(char),
     Backspace,
     Submit,
@@ -164,7 +164,7 @@ impl Component for Paudle {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             PaudleMsg::TypeLetter(c) if self.current_guess.len() < self.word_length => {
-                self.current_guess.push(c);
+                self.current_guess.push(c.to_ascii_lowercase());
                 true
             }
             PaudleMsg::TypeLetter(_) => false,
@@ -238,6 +238,8 @@ impl Component for Paudle {
             }
         });
 
+        let cb = ctx.link().callback(|msg: PaudleMsg| msg);
+
         // tabIndex=0 for keyboard events: https://stackoverflow.com/questions/43503964/onkeydown-event-not-working-on-divs-in-react/44434971#44434971
         html! {
             <div tabIndex=0 onkeyup={on_keypress} class="page">
@@ -253,7 +255,7 @@ impl Component for Paudle {
                         }
                     </div>
                 </div>
-                <Keyboard keys={self.keyboard_status.clone()} />
+                <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
             </div>
         }
     }
