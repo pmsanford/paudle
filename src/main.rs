@@ -11,46 +11,6 @@ use board::{Board, CellValue};
 use keyboard::{Keyboard, KeyboardStatus};
 
 const WORD_LIST: &str = include_str!("awords.txt");
-fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
-    let mut vals = Vec::with_capacity(word.len());
-    let mut counts = word
-        .chars()
-        .fold(HashMap::new(), |mut acc: HashMap<char, usize>, c| {
-            *acc.entry(c).or_insert(0) += 1;
-            acc
-        });
-
-    // find correct characters
-    for (w, g) in word.chars().zip(guess.chars()) {
-        let cell = match (g, w == g) {
-            (g, true) => {
-                if let Some(count) = counts.get_mut(&g) {
-                    *count = count.saturating_sub(1);
-                }
-                Some(CellValue::Correct(g))
-            }
-            _ => None,
-        };
-        vals.push(cell);
-    }
-
-    // categorize the rest of the characters
-    for (idx, g) in guess.chars().enumerate() {
-        let cell = match (vals[idx], counts.get(&g)) {
-            (v @ Some(_), _) => v,
-            (None, Some(f)) if *f > 0 => {
-                if let Some(count) = counts.get_mut(&g) {
-                    *count = count.saturating_sub(1);
-                }
-                Some(CellValue::Present(g))
-            }
-            (_, _) => Some(CellValue::Absent(g)),
-        };
-        vals[idx] = cell;
-    }
-
-    vals.into_iter().map(Option::unwrap).collect()
-}
 struct Paudle {
     word: String,
     guesses: Vec<Vec<CellValue>>,
@@ -65,31 +25,6 @@ pub enum PaudleMsg {
     TypeLetter(char),
     Backspace,
     Submit,
-}
-
-#[allow(clippy::needless_pass_by_value)]
-fn handle_keypress(e: KeyboardEvent) -> Option<PaudleMsg> {
-    if &e.key() == "Backspace" {
-        return Some(PaudleMsg::Backspace);
-    }
-    if &e.key() == "Enter" {
-        return Some(PaudleMsg::Submit);
-    }
-    if e.key().len() > 1 {
-        return None;
-    }
-    if e.ctrl_key() || e.alt_key() || e.meta_key() || e.shift_key() {
-        return None;
-    }
-    if let Some(c) = e.key().chars().next() {
-        if c.is_alphabetic() {
-            Some(PaudleMsg::TypeLetter(c))
-        } else {
-            None
-        }
-    } else {
-        None
-    }
 }
 
 impl Component for Paudle {
@@ -131,8 +66,7 @@ impl Component for Paudle {
                         self.bad_guess = true;
                         return true;
                     }
-                    let new_guess =
-                        create_row_props(&self.word, &self.current_guess.to_lowercase());
+                    let new_guess = evaluate_guess(&self.word, &self.current_guess.to_lowercase());
                     self.keyboard_status.update_status(&new_guess);
                     let correct = new_guess.iter().all(|g| matches!(g, CellValue::Correct(_)));
                     self.guesses.push(new_guess);
@@ -167,6 +101,72 @@ impl Component for Paudle {
                 <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
             </div>
         }
+    }
+}
+
+fn evaluate_guess(word: &str, guess: &str) -> Vec<CellValue> {
+    let mut vals = Vec::with_capacity(word.len());
+    let mut counts = word
+        .chars()
+        .fold(HashMap::new(), |mut acc: HashMap<char, usize>, c| {
+            *acc.entry(c).or_insert(0) += 1;
+            acc
+        });
+
+    // find correct characters
+    for (w, g) in word.chars().zip(guess.chars()) {
+        let cell = match (g, w == g) {
+            (g, true) => {
+                if let Some(count) = counts.get_mut(&g) {
+                    *count = count.saturating_sub(1);
+                }
+                Some(CellValue::Correct(g))
+            }
+            _ => None,
+        };
+        vals.push(cell);
+    }
+
+    // categorize the rest of the characters
+    for (idx, g) in guess.chars().enumerate() {
+        let cell = match (vals[idx], counts.get(&g)) {
+            (v @ Some(_), _) => v,
+            (None, Some(f)) if *f > 0 => {
+                if let Some(count) = counts.get_mut(&g) {
+                    *count = count.saturating_sub(1);
+                }
+                Some(CellValue::Present(g))
+            }
+            (_, _) => Some(CellValue::Absent(g)),
+        };
+        vals[idx] = cell;
+    }
+
+    vals.into_iter().map(Option::unwrap).collect()
+}
+
+#[allow(clippy::needless_pass_by_value)]
+fn handle_keypress(e: KeyboardEvent) -> Option<PaudleMsg> {
+    if &e.key() == "Backspace" {
+        return Some(PaudleMsg::Backspace);
+    }
+    if &e.key() == "Enter" {
+        return Some(PaudleMsg::Submit);
+    }
+    if e.key().len() > 1 {
+        return None;
+    }
+    if e.ctrl_key() || e.alt_key() || e.meta_key() || e.shift_key() {
+        return None;
+    }
+    if let Some(c) = e.key().chars().next() {
+        if c.is_alphabetic() {
+            Some(PaudleMsg::TypeLetter(c))
+        } else {
+            None
+        }
+    } else {
+        None
     }
 }
 
