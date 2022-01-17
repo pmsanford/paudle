@@ -15,6 +15,7 @@
       --tile-size: 62px;
       --tile-border-size: 2px;
       --grid-gap: 5px;
+      --row-wrong-bg: red;
       font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
     }
 
@@ -37,6 +38,10 @@
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: var(--grid-gap);
+    }
+
+    .wrong > .tile[data-status="empty"] {
+      background-color: var(--row-wrong-bg);
     }
 
     .tile {

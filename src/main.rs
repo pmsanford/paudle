@@ -57,6 +57,7 @@ pub fn cell(props: &CellProps) -> Html {
 #[derive(Properties, PartialEq)]
 struct RowProps {
     values: Vec<CellValue>,
+    wrong: bool,
 }
 
 struct PaudleRow;
@@ -71,8 +72,12 @@ impl Component for PaudleRow {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let mut classes = vec!["row"];
+        if ctx.props().wrong {
+            classes.push("wrong");
+        }
         html! {
-            <div class="row">
+            <div class={classes!(classes)}>
                 { ctx.props().values.clone().iter().map(|c| html! { <Cell value={c} /> }).collect::<Html>() }
             </div>
         }
@@ -126,6 +131,7 @@ struct Paudle {
     current_guess: String,
     word_length: usize,
     max_guesses: usize,
+    bad_guess: bool,
 }
 
 enum PaudleMsg {
@@ -148,6 +154,7 @@ impl Component for Paudle {
             current_guess: String::new(),
             word_length: 5,
             max_guesses: 6,
+            bad_guess: false,
         }
     }
 
@@ -159,6 +166,7 @@ impl Component for Paudle {
             }
             PaudleMsg::TypeLetter(_) => false,
             PaudleMsg::Backspace => {
+                self.bad_guess = false;
                 self.current_guess.pop();
                 true
             }
@@ -167,8 +175,8 @@ impl Component for Paudle {
                     && self.guesses.len() < self.max_guesses
                 {
                     if !WORD_LIST.contains(&self.current_guess) {
-                        console::log_1(&"Not in word list".into());
-                        return false;
+                        self.bad_guess = true;
+                        return true;
                     }
                     let new_guess =
                         create_row_props(&self.word, &self.current_guess.to_lowercase());
@@ -232,7 +240,14 @@ impl Component for Paudle {
             <div tabIndex=0 onkeyup={on_keypress} class="page">
                 <div class="wrapper">
                     <div class="game">
-                        {rows.into_iter().map(|r| html! { <PaudleRow values={r} /> }).collect::<Html>()}
+                        {
+                            rows.into_iter()
+                                .enumerate()
+                                .map(|(idx, r)| {
+                                    let wrong = idx == self.guesses.len() && self.bad_guess;
+                                    html! { <PaudleRow wrong={wrong} values={r} /> }
+                                }).collect::<Html>()
+                        }
                     </div>
                 </div>
             </div>
