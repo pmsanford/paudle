@@ -1,5 +1,7 @@
+#![allow(clippy::module_name_repetitions)]
 mod board;
 mod keyboard;
+mod scoreboard;
 
 use rand::{prelude::IteratorRandom, thread_rng};
 use std::collections::HashMap;
@@ -9,6 +11,7 @@ use yew::prelude::*;
 
 use board::{Board, CellValue};
 use keyboard::{Keyboard, KeyboardStatus};
+use scoreboard::Scoreboard;
 
 const WORD_LIST: &str = include_str!("awords.txt");
 struct Paudle {
@@ -19,12 +22,20 @@ struct Paudle {
     word_length: usize,
     max_guesses: usize,
     bad_guess: bool,
+    game_state: GameState,
 }
 
 pub enum PaudleMsg {
     TypeLetter(char),
     Backspace,
     Submit,
+}
+
+#[derive(PartialEq, Clone)]
+pub enum GameState {
+    InProgress,
+    Won,
+    Lost,
 }
 
 impl Component for Paudle {
@@ -43,10 +54,14 @@ impl Component for Paudle {
             word_length: 5,
             max_guesses: 6,
             bad_guess: false,
+            game_state: GameState::InProgress,
         }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+        if self.game_state != GameState::InProgress {
+            return false;
+        }
         match msg {
             PaudleMsg::TypeLetter(c) if self.current_guess.len() < self.word_length => {
                 self.current_guess.push(c.to_ascii_lowercase());
@@ -59,9 +74,7 @@ impl Component for Paudle {
                 true
             }
             PaudleMsg::Submit => {
-                if self.current_guess.len() == self.word_length
-                    && self.guesses.len() < self.max_guesses
-                {
+                if self.current_guess.len() == self.word_length {
                     if !WORD_LIST.contains(&self.current_guess) {
                         self.bad_guess = true;
                         return true;
@@ -71,8 +84,10 @@ impl Component for Paudle {
                     let correct = new_guess.iter().all(|g| matches!(g, CellValue::Correct(_)));
                     self.guesses.push(new_guess);
                     self.current_guess = String::new();
-                    if self.guesses.len() == self.max_guesses || correct {
-                        console::log_1(&format!("Word: {}", self.word).into());
+                    if correct {
+                        self.game_state = GameState::Won;
+                    } else if self.guesses.len() == self.max_guesses {
+                        self.game_state = GameState::Lost;
                     }
                     true
                 } else {
@@ -99,6 +114,7 @@ impl Component for Paudle {
                     bad_guess={self.bad_guess}
                 />
                 <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
+                <Scoreboard word={self.word.clone()} guesses={self.guesses.clone()} max_guesses={self.max_guesses} game_state={self.game_state.clone()} />
             </div>
         }
     }

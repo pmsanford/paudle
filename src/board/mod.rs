@@ -1,4 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
 #[allow(clippy::module_inception)]
 mod board;
 mod cell;

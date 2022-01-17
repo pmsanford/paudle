@@ -2,7 +2,6 @@ use yew::prelude::*;
 
 use super::cell::{Cell, CellValue};
 
-#[allow(clippy::module_name_repetitions)]
 #[derive(Properties, PartialEq)]
 pub struct RowProps {
     pub values: Vec<CellValue>,

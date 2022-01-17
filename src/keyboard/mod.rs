@@ -1,4 +1,3 @@
-#![allow(clippy::module_name_repetitions)]
 mod key;
 #[allow(clippy::module_inception)]
 mod keyboard;
