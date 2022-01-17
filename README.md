@@ -26,6 +26,6 @@ Maybe add:
 Needs cleanup:
 - Clones everywhere on prop passing
 - Lots of prop drilling
-- Keypresses sometimes just don't get detecte until you tab into the page
+- Keypresses sometimes just don't get detected until you tab into the page
 
 [The word corpus](src/awords.txt) is the 2250 most common 5 letter words in the English wikipedia, corpus, retrieved [here](https://github.com/IlyaSemenov/wikipedia-word-frequency/tree/master/results) under the MIT license. This is actually a pretty bad word list because it's missing things like plural forms and other common words unlikely to be in Wikipedia articles like "slugs" and "creep" but includes more common proper nouns like "klaus."
