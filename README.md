@@ -10,5 +10,6 @@ Still missing:
 - Allowing you to pick up where you left off (if you navigate away or refresh)
 - Tracking how well you did across game sessions
 - Hard mode
+- Animations
 
 [The word corpus](src/awords.txt) is the 2250 most common 5 letter words in the English wikipedia, corpus, retrieved [here](https://github.com/IlyaSemenov/wikipedia-word-frequency/tree/master/results) under the MIT license. This is actually a pretty bad word list because it's missing things like plural forms and other common words unlikely to be in Wikipedia articles like "slugs" and "creep" but includes more common proper nouns like "klaus."
