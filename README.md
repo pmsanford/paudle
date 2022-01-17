@@ -5,6 +5,13 @@ A reimplementation of the excellent word game [Wordle](https://www.powerlanguage
 
 Unlike the original, this one is entirely client side, so there's nothing to stop you from cheating - if you can figure out how to extract the current word from the running WASM (I can't). 
 
+Running
+-------
+First, [install the webassembly target and trunk](https://yew.rs/docs/getting-started/introduction). Then, clone the repo and run `trunk serve`
+
+Todo
+----
+
 Still missing:
 - Copyable scoreboard with unicode blocks
 - Allowing you to pick up where you left off (if you navigate away or refresh)
