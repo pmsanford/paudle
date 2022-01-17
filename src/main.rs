@@ -142,6 +142,30 @@ pub enum PaudleMsg {
     Submit,
 }
 
+fn handle_keypress(e: KeyboardEvent) -> Option<PaudleMsg> {
+    if &e.key() == "Backspace" {
+        return Some(PaudleMsg::Backspace);
+    }
+    if &e.key() == "Enter" {
+        return Some(PaudleMsg::Submit);
+    }
+    if e.key().len() > 1 {
+        return None;
+    }
+    if e.ctrl_key() || e.alt_key() || e.meta_key() || e.shift_key() {
+        return None;
+    }
+    if let Some(c) = e.key().chars().next() {
+        if c.is_alphabetic() {
+            Some(PaudleMsg::TypeLetter(c))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
 impl Component for Paudle {
     type Message = PaudleMsg;
 
@@ -199,65 +223,63 @@ impl Component for Paudle {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let mut filled_rows = self.guesses.clone();
-        let mut rows = vec![vec![CellValue::Empty; self.word_length]; self.max_guesses];
-        if filled_rows.len() < self.max_guesses {
-            let mut guess_row = vec![CellValue::Typing(' '); self.word_length];
-            for (idx, c) in self.current_guess.chars().enumerate() {
-                guess_row[idx] = CellValue::Typing(c);
-            }
-            filled_rows.push(guess_row);
-        }
-        for (i, val) in filled_rows.into_iter().enumerate() {
-            rows[i] = val;
-        }
-
         let link = ctx.link();
-
-        let on_keypress = link.batch_callback(|e: KeyboardEvent| {
-            if &e.key() == "Backspace" {
-                return Some(PaudleMsg::Backspace);
-            }
-            if &e.key() == "Enter" {
-                return Some(PaudleMsg::Submit);
-            }
-            if e.key().len() > 1 {
-                return None;
-            }
-            if e.ctrl_key() || e.alt_key() || e.meta_key() {
-                return None;
-            }
-            if let Some(c) = e.key().chars().next() {
-                if c.is_alphabetic() {
-                    Some(PaudleMsg::TypeLetter(c))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        });
+        let on_keypress = link.batch_callback(handle_keypress);
 
         let cb = ctx.link().callback(|msg: PaudleMsg| msg);
 
         // tabIndex=0 for keyboard events: https://stackoverflow.com/questions/43503964/onkeydown-event-not-working-on-divs-in-react/44434971#44434971
         html! {
-            <div tabIndex=0 onkeyup={on_keypress} class="page">
-                <div class="wrapper">
-                    <div class="game">
-                        {
-                            rows.into_iter()
-                                .enumerate()
-                                .map(|(idx, r)| {
-                                    let wrong = idx == self.guesses.len() && self.bad_guess;
-                                    html! { <PaudleRow wrong={wrong} values={r} /> }
-                                }).collect::<Html>()
-                        }
-                    </div>
-                </div>
+            <div id="outer_container" tabIndex=0 onkeyup={on_keypress} class="page">
+                <Board
+                    current_guess={self.current_guess.clone()}
+                    guesses={self.guesses.clone()}
+                    row_count={self.max_guesses}
+                    word_length={self.word_length}
+                    bad_guess={self.bad_guess}
+                />
                 <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
             </div>
         }
+    }
+}
+
+#[derive(Properties, PartialEq)]
+struct BoardProps {
+    current_guess: String,
+    guesses: Vec<Vec<CellValue>>,
+    row_count: usize,
+    word_length: usize,
+    bad_guess: bool,
+}
+
+#[function_component(Board)]
+fn view(props: &BoardProps) -> Html {
+    let mut filled_rows = props.guesses.clone();
+    let mut rows = vec![vec![CellValue::Empty; props.word_length]; props.row_count];
+    if filled_rows.len() < rows.len() {
+        let mut guess_row = vec![CellValue::Typing(' '); props.word_length];
+        for (idx, c) in props.current_guess.chars().enumerate() {
+            guess_row[idx] = CellValue::Typing(c);
+        }
+        filled_rows.push(guess_row);
+    }
+    for (i, val) in filled_rows.into_iter().enumerate() {
+        rows[i] = val;
+    }
+    html! {
+            <div class="wrapper">
+                <div class="game">
+                    {
+                        rows.into_iter()
+                            .enumerate()
+                            .map(|(idx, r)| {
+                                let wrong = idx == props.guesses.len() && props.bad_guess;
+                                html! { <PaudleRow wrong={wrong} values={r} /> }
+                            }).collect::<Html>()
+                    }
+                </div>
+            </div>
     }
 }
 
