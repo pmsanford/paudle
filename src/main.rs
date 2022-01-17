@@ -1,91 +1,16 @@
-use keyboard::{Keyboard, KeyboardStatus};
+mod board;
+mod keyboard;
+
 use rand::{prelude::IteratorRandom, thread_rng};
 use std::collections::HashMap;
 #[allow(unused_imports)]
 use web_sys::console;
+use yew::prelude::*;
 
-mod keyboard;
-
-use yew::{html::ImplicitClone, prelude::*};
+use board::{Board, CellValue};
+use keyboard::{Keyboard, KeyboardStatus};
 
 const WORD_LIST: &str = include_str!("awords.txt");
-
-#[derive(PartialEq, Clone, Copy)]
-pub enum CellValue {
-    Empty,
-    Typing(char),
-    Absent(char),
-    Present(char),
-    Correct(char),
-}
-
-impl ImplicitClone for CellValue {}
-
-#[derive(Properties, PartialEq, Clone)]
-pub struct CellProps {
-    value: CellValue,
-}
-
-#[function_component(Cell)]
-pub fn cell(props: &CellProps) -> Html {
-    match props.value {
-        CellValue::Empty => {
-            html! {
-                <div data-status="empty" class="tile" />
-            }
-        }
-        CellValue::Typing(v) => {
-            html! {
-                <div data-status="empty" class="tile">{v}</div>
-            }
-        }
-        CellValue::Absent(v) => {
-            html! {
-                <div data-status="absent" class="tile">{v}</div>
-            }
-        }
-        CellValue::Present(v) => {
-            html! {
-                <div data-status="present" class="tile">{v}</div>
-            }
-        }
-        CellValue::Correct(v) => {
-            html! {
-                <div data-status="correct" class="tile">{v}</div>
-            }
-        }
-    }
-}
-
-#[derive(Properties, PartialEq)]
-struct RowProps {
-    values: Vec<CellValue>,
-    wrong: bool,
-}
-
-struct PaudleRow;
-
-impl Component for PaudleRow {
-    type Message = ();
-
-    type Properties = RowProps;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let mut classes = vec!["row"];
-        if ctx.props().wrong {
-            classes.push("wrong");
-        }
-        html! {
-            <div class={classes!(classes)}>
-                { ctx.props().values.clone().iter().map(|c| html! { <Cell value={c} /> }).collect::<Html>() }
-            </div>
-        }
-    }
-}
 fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
     let mut vals = Vec::with_capacity(word.len());
     let mut counts = word
@@ -142,6 +67,7 @@ pub enum PaudleMsg {
     Submit,
 }
 
+#[allow(clippy::needless_pass_by_value)]
 fn handle_keypress(e: KeyboardEvent) -> Option<PaudleMsg> {
     if &e.key() == "Backspace" {
         return Some(PaudleMsg::Backspace);
@@ -241,45 +167,6 @@ impl Component for Paudle {
                 <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
             </div>
         }
-    }
-}
-
-#[derive(Properties, PartialEq)]
-struct BoardProps {
-    current_guess: String,
-    guesses: Vec<Vec<CellValue>>,
-    row_count: usize,
-    word_length: usize,
-    bad_guess: bool,
-}
-
-#[function_component(Board)]
-fn view(props: &BoardProps) -> Html {
-    let mut filled_rows = props.guesses.clone();
-    let mut rows = vec![vec![CellValue::Empty; props.word_length]; props.row_count];
-    if filled_rows.len() < rows.len() {
-        let mut guess_row = vec![CellValue::Typing(' '); props.word_length];
-        for (idx, c) in props.current_guess.chars().enumerate() {
-            guess_row[idx] = CellValue::Typing(c);
-        }
-        filled_rows.push(guess_row);
-    }
-    for (i, val) in filled_rows.into_iter().enumerate() {
-        rows[i] = val;
-    }
-    html! {
-            <div class="wrapper">
-                <div class="game">
-                    {
-                        rows.into_iter()
-                            .enumerate()
-                            .map(|(idx, r)| {
-                                let wrong = idx == props.guesses.len() && props.bad_guess;
-                                html! { <PaudleRow wrong={wrong} values={r} /> }
-                            }).collect::<Html>()
-                    }
-                </div>
-            </div>
     }
 }
 
