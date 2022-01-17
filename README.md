@@ -12,6 +12,10 @@ Still missing:
 - Hard mode
 - Animations
 
+Maybe add:
+- Configurable word length/number of guesses
+- Highlighting already tried letters when typing
+
 Needs cleanup:
 - Clones everywhere on prop passing
 - Lots of prop drilling
