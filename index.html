@@ -16,6 +16,10 @@
       --tile-border-size: 2px;
       --grid-gap: 5px;
       --row-wrong-bg: red;
+      --key-bg: #d3d6da;
+      --key-fg: black;
+      --key-width: 43px;
+      --key-height: 58px;
       font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
     }
 
@@ -56,22 +60,53 @@
       box-sizing: border-box;
     }
 
-    .tile[data-status="present"] {
+    .keyboard {
+      margin-top: 24px;
+    }
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .key {
+      height: var(--key-height);
+      width: var(--key-width);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-transform: uppercase;
+      font-size: 1rem;
+      font-weight: bold;
+      box-sizing: border-box;
+      margin-right: 6px;
+    }
+
+    .special-key {
+      width: calc(var(--key-width) * 1.5);
+    }
+
+    div[data-status="present"] {
       background-color: var(--tile-present-bg);
       color: var(--tile-present-fg);
     }
-    .tile[data-status="correct"] {
+    div[data-status="correct"] {
       background-color: var(--tile-correct-bg);
       color: var(--tile-correct-fg);
     }
-    .tile[data-status="empty"] {
+    div[data-status="empty"] {
       background-color: var(--tile-empty-bg);
       color: var(--tile-empty-fg);
       border: var(--tile-border-size) solid var(--tile-empty-border);
     }
-    .tile[data-status="absent"] {
+    div[data-status="absent"] {
       background-color: var(--tile-absent-bg);
       color: var(--tile-absent-fg);
+    }
+    div[data-status="unused"] {
+      background-color: var(--key-bg);
+      color: var(--key-fg);
     }
   </style>
    <meta charset="utf-8" />
