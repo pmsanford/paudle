@@ -1,4 +1,4 @@
-use super::row::PaudleRow;
+use super::row::Row;
 use yew::prelude::*;
 
 use super::cell::CellValue;
@@ -34,7 +34,7 @@ pub fn view(props: &BoardProps) -> Html {
                             .enumerate()
                             .map(|(idx, r)| {
                                 let wrong = idx == props.guesses.len() && props.bad_guess;
-                                html! { <PaudleRow wrong={wrong} values={r} /> }
+                                html! { <Row wrong={wrong} values={r} /> }
                             }).collect::<Html>()
                     }
                 </div>

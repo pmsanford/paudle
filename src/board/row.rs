@@ -9,9 +9,9 @@ pub struct RowProps {
     pub wrong: bool,
 }
 
-pub struct PaudleRow;
+pub struct Row;
 
-impl Component for PaudleRow {
+impl Component for Row {
     type Message = ();
 
     type Properties = RowProps;
