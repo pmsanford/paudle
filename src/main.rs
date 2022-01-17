@@ -1,14 +1,14 @@
+use keyboard::{Keyboard, KeyboardStatus};
 use rand::{prelude::IteratorRandom, thread_rng};
 use std::collections::HashMap;
 #[allow(unused_imports)]
 use web_sys::console;
 
-use yew::{
-    html::{ImplicitClone, IntoPropValue},
-    prelude::*,
-};
+mod keyboard;
 
-const WORD_LIST: &'static str = include_str!("awords.txt");
+use yew::{html::ImplicitClone, prelude::*};
+
+const WORD_LIST: &str = include_str!("awords.txt");
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum CellValue {
@@ -86,142 +86,6 @@ impl Component for PaudleRow {
         }
     }
 }
-
-#[derive(Properties, PartialEq)]
-pub struct KeyProps {
-    def: KeyDef,
-}
-
-impl IntoPropValue<KeyDef> for KeyStatus {
-    fn into_prop_value(self) -> KeyDef {
-        KeyDef::Letter(self)
-    }
-}
-
-#[function_component(Key)]
-pub fn key(props: &KeyProps) -> Html {
-    html! {
-      <div data-status={props.status_string()} class={props.class()}>
-        {props.disp()}
-      </div>
-    }
-}
-
-#[derive(PartialEq, Clone, Debug)]
-pub enum Status {
-    Unused,
-    Absent,
-    Present,
-    Correct,
-}
-
-impl KeyProps {
-    fn status_string(&self) -> String {
-        match &self.def {
-            KeyDef::Letter(letter) => match letter.status {
-                Status::Unused => "unused",
-                Status::Absent => "absent",
-                Status::Present => "present",
-                Status::Correct => "correct",
-            },
-            KeyDef::Enter => "unused",
-            KeyDef::Backspace => "unused",
-        }
-        .to_string()
-    }
-
-    fn class(&self) -> Classes {
-        let mut classes = classes!("key");
-        if matches!(self.def, KeyDef::Enter | KeyDef::Backspace) {
-            classes.push("special-key");
-        }
-        classes
-    }
-
-    fn disp(&self) -> String {
-        match &self.def {
-            KeyDef::Letter(l) => l.letter.to_string(),
-            KeyDef::Enter => "ENTER".to_string(),
-            KeyDef::Backspace => "DEL".to_string(),
-        }
-    }
-}
-
-#[derive(PartialEq, Clone)]
-pub struct KeyStatus {
-    status: Status,
-    letter: char,
-}
-
-#[derive(PartialEq, Clone)]
-pub enum KeyDef {
-    Letter(KeyStatus),
-    Enter,
-    Backspace,
-}
-
-impl ImplicitClone for KeyDef {}
-
-struct Keyboard;
-
-#[derive(Properties, PartialEq)]
-struct KeyboardProperties {
-    keys: KeyboardStatus,
-}
-
-impl Component for Keyboard {
-    type Message = ();
-
-    type Properties = KeyboardProperties;
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        html! {
-        <div class="wrapper">
-          <div class="keyboard">
-            <div class="keyboard-row">
-              <Key def={ctx.props().keys.get_status('Q')} />
-              <Key def={ctx.props().keys.get_status('W')} />
-              <Key def={ctx.props().keys.get_status('E')} />
-              <Key def={ctx.props().keys.get_status('R')} />
-              <Key def={ctx.props().keys.get_status('T')} />
-              <Key def={ctx.props().keys.get_status('Y')} />
-              <Key def={ctx.props().keys.get_status('U')} />
-              <Key def={ctx.props().keys.get_status('I')} />
-              <Key def={ctx.props().keys.get_status('O')} />
-              <Key def={ctx.props().keys.get_status('P')} />
-            </div>
-            <div class="keyboard-row">
-              <Key def={ctx.props().keys.get_status('A')} />
-              <Key def={ctx.props().keys.get_status('S')} />
-              <Key def={ctx.props().keys.get_status('D')} />
-              <Key def={ctx.props().keys.get_status('F')} />
-              <Key def={ctx.props().keys.get_status('G')} />
-              <Key def={ctx.props().keys.get_status('H')} />
-              <Key def={ctx.props().keys.get_status('J')} />
-              <Key def={ctx.props().keys.get_status('K')} />
-              <Key def={ctx.props().keys.get_status('L')} />
-            </div>
-            <div class="keyboard-row">
-              <Key def={KeyDef::Enter} />
-              <Key def={ctx.props().keys.get_status('Z')} />
-              <Key def={ctx.props().keys.get_status('X')} />
-              <Key def={ctx.props().keys.get_status('C')} />
-              <Key def={ctx.props().keys.get_status('V')} />
-              <Key def={ctx.props().keys.get_status('B')} />
-              <Key def={ctx.props().keys.get_status('N')} />
-              <Key def={ctx.props().keys.get_status('M')} />
-              <Key def={KeyDef::Backspace} />
-            </div>
-          </div>
-        </div>
-            }
-    }
-}
-
 fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
     let mut vals = Vec::with_capacity(word.len());
     let mut counts = word
@@ -262,46 +126,6 @@ fn create_row_props(word: &str, guess: &str) -> Vec<CellValue> {
 
     vals.into_iter().map(Option::unwrap).collect()
 }
-
-#[derive(PartialEq, Clone)]
-pub struct KeyboardStatus {
-    keys: HashMap<char, Status>,
-}
-
-impl KeyboardStatus {
-    fn new() -> Self {
-        Self {
-            keys: HashMap::new(),
-        }
-    }
-
-    fn get_status(&self, letter: char) -> KeyStatus {
-        let status = self
-            .keys
-            .get(&letter.to_ascii_lowercase())
-            .cloned()
-            .unwrap_or_else(|| Status::Unused);
-        KeyStatus { letter, status }
-    }
-
-    fn update_status(&mut self, guess: &Vec<CellValue>) {
-        for cell in guess {
-            match cell {
-                CellValue::Absent(c) => {
-                    self.keys.insert(*c, Status::Absent);
-                }
-                CellValue::Present(c) => {
-                    self.keys.insert(*c, Status::Present);
-                }
-                CellValue::Correct(c) => {
-                    self.keys.insert(*c, Status::Correct);
-                }
-                _ => {}
-            }
-        }
-    }
-}
-
 struct Paudle {
     word: String,
     guesses: Vec<Vec<CellValue>>,
@@ -375,9 +199,8 @@ impl Component for Paudle {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let guesses = self.guesses.clone();
+        let mut filled_rows = self.guesses.clone();
         let mut rows = vec![vec![CellValue::Empty; self.word_length]; self.max_guesses];
-        let mut filled_rows = guesses.iter().cloned().collect::<Vec<_>>();
         if filled_rows.len() < self.max_guesses {
             let mut guess_row = vec![CellValue::Typing(' '); self.word_length];
             for (idx, c) in self.current_guess.chars().enumerate() {
