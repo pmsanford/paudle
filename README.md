@@ -7,7 +7,7 @@ Unlike the original, this one is entirely client side, so there's nothing to sto
 
 Running
 -------
-First, [install the webassembly target and trunk](https://yew.rs/docs/getting-started/introduction). Then, clone the repo and run `trunk serve`
+First, [install the webassembly target and trunk](https://yew.rs/docs/getting-started/introduction). Then, clone the repo and run `trunk serve` and navigate to http://localhost:8080 using your browser.
 
 Todo
 ----
