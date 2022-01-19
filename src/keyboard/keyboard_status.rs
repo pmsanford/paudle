@@ -28,12 +28,22 @@ impl KeyboardStatus {
         for cell in guess {
             match cell {
                 CellValue::Absent(c) => {
-                    self.keys.insert(*c, KeyStatus::Absent);
+                    // Only set absent if no entry at all
+                    self.keys.entry(*c).or_insert(KeyStatus::Absent);
                 }
                 CellValue::Present(c) => {
-                    self.keys.insert(*c, KeyStatus::Present);
+                    // If the key status is anything but correct, set Present
+                    self.keys
+                        .entry(*c)
+                        .and_modify(|e| {
+                            if *e != KeyStatus::Correct {
+                                *e = KeyStatus::Present;
+                            }
+                        })
+                        .or_insert(KeyStatus::Present);
                 }
                 CellValue::Correct(c) => {
+                    // Always set correct
                     self.keys.insert(*c, KeyStatus::Correct);
                 }
                 _ => {}
