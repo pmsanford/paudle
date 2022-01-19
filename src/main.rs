@@ -13,7 +13,7 @@ use web_sys::window;
 use yew::prelude::*;
 
 use board::{Board, CellValue};
-use keyboard::{Keyboard, KeyboardStatus};
+use keyboard::{Keyboard, KeyboardStatus, BACKSPACE, ENTER};
 use scoreboard::Scoreboard;
 
 const WORD_LIST: &str = include_str!("awords.txt");
@@ -179,10 +179,10 @@ fn evaluate_guess(word: &str, guess: &str) -> Vec<CellValue> {
 
 #[allow(clippy::needless_pass_by_value)]
 fn handle_keypress(e: KeyboardEvent) -> Option<PaudleMsg> {
-    if &e.key() == "Backspace" {
+    if e.key() == BACKSPACE {
         return Some(PaudleMsg::Backspace);
     }
-    if &e.key() == "Enter" {
+    if e.key() == ENTER {
         return Some(PaudleMsg::Submit);
     }
     if e.key().len() > 1 {

@@ -1,11 +1,12 @@
 use std::rc::Rc;
 
+pub const ENTER: &str = "Enter";
+pub const BACKSPACE: &str = "Backspace";
+
 use yew::{
     html::{ImplicitClone, IntoPropValue},
     prelude::*,
 };
-
-use crate::PaudleMsg;
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum KeyStatus {
@@ -39,7 +40,6 @@ impl IntoPropValue<KeyType> for KeyValue {
 #[derive(Properties, PartialEq)]
 pub struct KeyProps {
     pub def: KeyType,
-    pub key_press: Callback<PaudleMsg>,
 }
 
 impl KeyProps {
@@ -76,14 +76,13 @@ impl KeyProps {
 #[function_component(Key)]
 pub fn key(props: &KeyProps) -> Html {
     let def = Rc::new(props.def.clone());
-    let key_press = props.key_press.clone();
-    let onclick = Callback::from(move |_: MouseEvent| match &*def {
-        KeyType::Letter(l) => key_press.emit(PaudleMsg::TypeLetter(l.letter)),
-        KeyType::Enter => key_press.emit(PaudleMsg::Submit),
-        KeyType::Backspace => key_press.emit(PaudleMsg::Backspace),
-    });
+    let key_id = match &*def {
+        KeyType::Letter(l) => l.letter.to_string(),
+        KeyType::Enter => "Enter".to_string(),
+        KeyType::Backspace => "Backspace".to_string(),
+    };
     html! {
-      <div onclick={onclick} data-status={props.status_string()} class={props.class()}>
+      <div data-key-id={key_id} data-status={props.status_string()} class={props.class()}>
         {props.disp()}
       </div>
     }
