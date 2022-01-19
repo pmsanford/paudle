@@ -22,42 +22,38 @@ impl Component for Keyboard {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let kp = &ctx.props().key_press;
+
+        let key = |c: char| {
+            html! { <Key key_press={kp.clone()} def={ctx.props().keys.get_status(c)} /> }
+        };
+
+        let row_one = ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P']
+            .into_iter()
+            .map(key)
+            .collect::<Vec<_>>();
+        let row_two = ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
+            .into_iter()
+            .map(key)
+            .collect::<Vec<_>>();
+        let row_three = ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
+            .into_iter()
+            .map(key)
+            .collect::<Vec<_>>();
+
         html! {
         <div class="wrapper">
           <div class="keyboard">
             <div class="keyboard-row">
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('Q')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('W')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('E')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('R')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('T')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('Y')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('U')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('I')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('O')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('P')} />
+              {row_one}
             </div>
             <div class="keyboard-row">
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('A')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('S')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('D')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('F')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('G')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('H')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('J')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('K')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('L')} />
+              {row_two}
             </div>
             <div class="keyboard-row">
-              <Key key_press={ctx.props().key_press.clone()} def={KeyType::Enter} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('Z')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('X')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('C')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('V')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('B')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('N')} />
-              <Key key_press={ctx.props().key_press.clone()} def={ctx.props().keys.get_status('M')} />
-              <Key key_press={ctx.props().key_press.clone()} def={KeyType::Backspace} />
+              <Key key_press={kp.clone()} def={KeyType::Enter} />
+              {row_three}
+              <Key key_press={kp.clone()} def={KeyType::Backspace} />
             </div>
           </div>
         </div>
