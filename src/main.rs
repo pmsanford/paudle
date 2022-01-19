@@ -5,8 +5,10 @@ mod scoreboard;
 
 use rand::{prelude::IteratorRandom, thread_rng};
 use std::collections::HashMap;
+use wasm_bindgen::{prelude::Closure, JsCast};
 #[allow(unused_imports)]
 use web_sys::console;
+use web_sys::window;
 use yew::prelude::*;
 
 use board::{Board, CellValue};
@@ -97,15 +99,31 @@ impl Component for Paudle {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let link = ctx.link();
-        let on_keypress = link.batch_callback(handle_keypress);
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        if !first_render {
+            return;
+        }
 
+        let on_keypress = ctx.link().batch_callback(handle_keypress);
+
+        let listener = Closure::<dyn Fn(KeyboardEvent)>::wrap(Box::new(move |e: KeyboardEvent| {
+            on_keypress.emit(e)
+        }));
+
+        window()
+            .expect("No window? Where am I?")
+            .add_event_listener_with_callback("keydown", listener.as_ref().unchecked_ref())
+            .expect("Couldn't attach keydown listener");
+
+        Box::leak(Box::new(listener));
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
         let cb = ctx.link().callback(|msg: PaudleMsg| msg);
 
         // tabIndex=0 for keyboard events: https://stackoverflow.com/questions/43503964/onkeydown-event-not-working-on-divs-in-react/44434971#44434971
         html! {
-            <div id="outer_container" tabIndex=0 onkeyup={on_keypress} class="page">
+            <div class="page">
                 <Board
                     current_guess={self.current_guess.clone()}
                     guesses={self.guesses.clone()}
