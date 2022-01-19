@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 getrandom = { version = "0.2", features = ["js"] }
+gloo-events = "0.1.1"
 rand = "0.8"
 wasm-bindgen = "0.2"
 web-sys = "0.3"

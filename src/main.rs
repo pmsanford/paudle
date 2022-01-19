@@ -3,9 +3,10 @@ mod board;
 mod keyboard;
 mod scoreboard;
 
+use gloo_events::EventListener;
 use rand::{prelude::IteratorRandom, thread_rng};
 use std::collections::HashMap;
-use wasm_bindgen::{prelude::Closure, JsCast};
+use wasm_bindgen::JsCast;
 #[allow(unused_imports)]
 use web_sys::console;
 use web_sys::window;
@@ -106,16 +107,14 @@ impl Component for Paudle {
 
         let on_keypress = ctx.link().batch_callback(handle_keypress);
 
-        let listener = Closure::<dyn Fn(KeyboardEvent)>::wrap(Box::new(move |e: KeyboardEvent| {
-            on_keypress.emit(e)
-        }));
+        let window = window().expect("No window? Where am I?");
 
-        window()
-            .expect("No window? Where am I?")
-            .add_event_listener_with_callback("keydown", listener.as_ref().unchecked_ref())
-            .expect("Couldn't attach keydown listener");
-
-        Box::leak(Box::new(listener));
+        EventListener::new(&window, "keydown", move |e: &Event| {
+            if let Ok(e) = e.clone().dyn_into::<KeyboardEvent>() {
+                on_keypress.emit(e);
+            }
+        })
+        .forget();
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {

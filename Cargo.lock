@@ -213,6 +213,7 @@ name = "paudle"
 version = "0.1.0"
 dependencies = [
  "getrandom",
+ "gloo-events",
  "rand",
  "wasm-bindgen",
  "web-sys",
