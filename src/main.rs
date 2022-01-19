@@ -131,14 +131,13 @@ fn evaluate_guess(word: &str, guess: &str) -> Vec<CellValue> {
 
     // find correct characters
     for (w, g) in word.chars().zip(guess.chars()) {
-        let cell = match (g, w == g) {
-            (g, true) => {
-                if let Some(count) = counts.get_mut(&g) {
-                    *count = count.saturating_sub(1);
-                }
-                Some(CellValue::Correct(g))
+        let cell = if w == g {
+            if let Some(count) = counts.get_mut(&g) {
+                *count = count.saturating_sub(1);
             }
-            _ => None,
+            Some(CellValue::Correct(g))
+        } else {
+            None
         };
         vals.push(cell);
     }
