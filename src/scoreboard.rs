@@ -10,13 +10,25 @@ pub struct ScoreboardProps {
     pub game_state: GameState,
 }
 
+#[derive(Properties, PartialEq)]
+pub struct ScoreRowProps {
+    pub guess: Vec<CellValue>,
+}
+
+#[function_component(ScoreRow)]
+pub fn score_row(props: &ScoreRowProps) -> Html {
+    html! { <>{ props.guess.iter().copied().map(CellValue::score_char).collect::<String>() }<br /></> }
+}
+
 #[function_component(Scoreboard)]
 pub fn scoreboard(props: &ScoreboardProps) -> Html {
     match props.game_state {
         GameState::InProgress => html! { <></> },
         GameState::Won => {
             html! {
-                <div class="scoreboard">{"WINNER: "}{props.guesses.len()}{"/"}{props.max_guesses}</div>
+                <div class="scoreboard winner">{"Winner: "}<br /><br />{"Paudle "}{props.guesses.len()}{"/"}{props.max_guesses}<br /><br />
+                    { props.guesses.iter().map(|g| html! { <ScoreRow guess={g.clone()} /> }).collect::<Html>() }
+                    </div>
             }
         }
         GameState::Lost => {

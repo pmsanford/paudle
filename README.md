@@ -13,7 +13,6 @@ Todo
 ----
 
 Still missing:
-- Copyable scoreboard with unicode blocks
 - Allowing you to pick up where you left off (if you navigate away or refresh)
 - Tracking how well you did across game sessions
 - Hard mode

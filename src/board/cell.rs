@@ -9,6 +9,16 @@ pub enum CellValue {
     Correct(char),
 }
 
+impl CellValue {
+    pub fn score_char(self) -> char {
+        match self {
+            Self::Empty | Self::Typing(_) | Self::Absent(_) => '⬜',
+            Self::Present(_) => '🟨',
+            Self::Correct(_) => '🟩',
+        }
+    }
+}
+
 impl ImplicitClone for CellValue {}
 
 #[derive(Properties, PartialEq, Clone)]
