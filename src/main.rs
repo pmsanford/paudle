@@ -4,8 +4,10 @@ mod keyboard;
 mod scoreboard;
 
 use gloo_events::EventListener;
+use gloo_storage::{LocalStorage, Storage};
 use rand::{prelude::IteratorRandom, thread_rng};
-use std::collections::HashMap;
+use serde::{Deserialize, Serialize};
+use std::{collections::HashMap, mem};
 use wasm_bindgen::JsCast;
 #[allow(unused_imports)]
 use web_sys::console;
@@ -15,6 +17,8 @@ use yew::prelude::*;
 use board::{Board, CellValue};
 use keyboard::{Keyboard, KeyboardStatus, BACKSPACE, ENTER};
 use scoreboard::Scoreboard;
+
+const SAVE_KEY: &str = "paudle_save_v1";
 
 const WORD_LIST: &str = include_str!("awords.txt");
 struct Paudle {
@@ -26,6 +30,51 @@ struct Paudle {
     max_guesses: usize,
     bad_guess: bool,
     game_state: GameState,
+}
+
+impl Default for Paudle {
+    fn default() -> Self {
+        let word_choices = WORD_LIST.lines();
+        let word = word_choices.choose(&mut thread_rng()).unwrap().to_string();
+        Self {
+            word,
+            guesses: Vec::new(),
+            keyboard_status: KeyboardStatus::default(),
+            current_guess: String::new(),
+            word_length: 5,
+            max_guesses: 6,
+            bad_guess: false,
+            game_state: GameState::InProgress,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct SaveState {
+    word: String,
+    guesses: Vec<Vec<CellValue>>,
+}
+
+impl SaveState {
+    fn from_live(from: &Paudle) -> Self {
+        Self {
+            word: from.word.clone(),
+            guesses: from.guesses.clone(),
+        }
+    }
+}
+
+impl From<SaveState> for Paudle {
+    fn from(other: SaveState) -> Self {
+        let mut new = Self {
+            word: other.word,
+            ..Paudle::default()
+        };
+
+        other.guesses.into_iter().for_each(|g| new.add_guess(g));
+
+        new
+    }
 }
 
 pub enum PaudleMsg {
@@ -41,23 +90,39 @@ pub enum GameState {
     Lost,
 }
 
+impl Paudle {
+    fn eval_and_add_guess(&mut self, guess: &str) {
+        let new_guess = evaluate_guess(&self.word, &guess.to_lowercase());
+        self.add_guess(new_guess);
+    }
+
+    fn add_guess(&mut self, new_guess: Vec<CellValue>) {
+        self.keyboard_status.update_status(&new_guess);
+        let correct = new_guess.iter().all(|g| matches!(g, CellValue::Correct(_)));
+        self.guesses.push(new_guess);
+        if correct {
+            self.game_state = GameState::Won;
+        } else if self.guesses.len() == self.max_guesses {
+            self.game_state = GameState::Lost;
+        }
+    }
+}
+
 impl Component for Paudle {
     type Message = PaudleMsg;
 
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let word_choices = WORD_LIST.lines();
-        let word = word_choices.choose(&mut thread_rng()).unwrap().to_string();
-        Self {
-            word,
-            guesses: vec![],
-            current_guess: String::new(),
-            keyboard_status: KeyboardStatus::new(),
-            word_length: 5,
-            max_guesses: 6,
-            bad_guess: false,
-            game_state: GameState::InProgress,
+        let save_state: gloo_storage::Result<SaveState> = LocalStorage::get(SAVE_KEY);
+        match save_state {
+            Ok(save_state) => save_state.into(),
+            Err(gloo_storage::errors::StorageError::KeyNotFound(_)) => Self::default(),
+            Err(e) => {
+                console::log_1(&format!("Found game state but couldn't deserialize: {}", e).into());
+                LocalStorage::delete(SAVE_KEY);
+                Self::default()
+            }
         }
     }
 
@@ -82,15 +147,14 @@ impl Component for Paudle {
                         self.bad_guess = true;
                         return true;
                     }
-                    let new_guess = evaluate_guess(&self.word, &self.current_guess.to_lowercase());
-                    self.keyboard_status.update_status(&new_guess);
-                    let correct = new_guess.iter().all(|g| matches!(g, CellValue::Correct(_)));
-                    self.guesses.push(new_guess);
-                    self.current_guess = String::new();
-                    if correct {
-                        self.game_state = GameState::Won;
-                    } else if self.guesses.len() == self.max_guesses {
-                        self.game_state = GameState::Lost;
+                    let current_guess = mem::take(&mut self.current_guess);
+                    self.eval_and_add_guess(&current_guess);
+                    if self.game_state == GameState::InProgress {
+                        if let Err(e) = LocalStorage::set(SAVE_KEY, SaveState::from_live(self)) {
+                            console::log_1(&format!("Couldn't save game state: {}", e).into());
+                        }
+                    } else {
+                        LocalStorage::delete(SAVE_KEY);
                     }
                     true
                 } else {

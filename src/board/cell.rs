@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use yew::{html::ImplicitClone, prelude::*};
 
-#[derive(PartialEq, Clone, Copy)]
+#[derive(PartialEq, Clone, Copy, Serialize, Deserialize)]
 pub enum CellValue {
     Empty,
     Typing(char),
