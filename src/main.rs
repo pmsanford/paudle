@@ -1,16 +1,15 @@
 #![allow(clippy::module_name_repetitions)]
 mod board;
 mod keyboard;
+mod save;
 mod scoreboard;
 
 use gloo_events::EventListener;
-use gloo_storage::{LocalStorage, Storage};
 use rand::{prelude::IteratorRandom, thread_rng};
-use serde::{Deserialize, Serialize};
+use save::load_saved_sate;
+use save::update_saved_state;
 use std::{collections::HashMap, mem};
 use wasm_bindgen::JsCast;
-#[allow(unused_imports)]
-use web_sys::console;
 use web_sys::window;
 use yew::prelude::*;
 
@@ -18,10 +17,8 @@ use board::{Board, CellValue};
 use keyboard::{Keyboard, KeyboardStatus, BACKSPACE, ENTER};
 use scoreboard::Scoreboard;
 
-const SAVE_KEY: &str = "paudle_save_v1";
-
 const WORD_LIST: &str = include_str!("awords.txt");
-struct Paudle {
+pub struct Paudle {
     word: String,
     guesses: Vec<Vec<CellValue>>,
     keyboard_status: KeyboardStatus,
@@ -46,34 +43,6 @@ impl Default for Paudle {
             bad_guess: false,
             game_state: GameState::InProgress,
         }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct SaveState {
-    word: String,
-    guesses: Vec<Vec<CellValue>>,
-}
-
-impl SaveState {
-    fn from_live(from: &Paudle) -> Self {
-        Self {
-            word: from.word.clone(),
-            guesses: from.guesses.clone(),
-        }
-    }
-}
-
-impl From<SaveState> for Paudle {
-    fn from(other: SaveState) -> Self {
-        let mut new = Self {
-            word: other.word,
-            ..Paudle::default()
-        };
-
-        other.guesses.into_iter().for_each(|g| new.add_guess(g));
-
-        new
     }
 }
 
@@ -114,16 +83,7 @@ impl Component for Paudle {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        let save_state: gloo_storage::Result<SaveState> = LocalStorage::get(SAVE_KEY);
-        match save_state {
-            Ok(save_state) => save_state.into(),
-            Err(gloo_storage::errors::StorageError::KeyNotFound(_)) => Self::default(),
-            Err(e) => {
-                console::log_1(&format!("Found game state but couldn't deserialize: {}", e).into());
-                LocalStorage::delete(SAVE_KEY);
-                Self::default()
-            }
-        }
+        load_saved_sate().map_or_else(Paudle::default, Into::into)
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -149,36 +109,13 @@ impl Component for Paudle {
                     }
                     let current_guess = mem::take(&mut self.current_guess);
                     self.eval_and_add_guess(&current_guess);
-                    if self.game_state == GameState::InProgress {
-                        if let Err(e) = LocalStorage::set(SAVE_KEY, SaveState::from_live(self)) {
-                            console::log_1(&format!("Couldn't save game state: {}", e).into());
-                        }
-                    } else {
-                        LocalStorage::delete(SAVE_KEY);
-                    }
+                    update_saved_state(self);
                     true
                 } else {
                     false
                 }
             }
         }
-    }
-
-    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
-        if !first_render {
-            return;
-        }
-
-        let on_keypress = ctx.link().batch_callback(handle_keypress);
-
-        let window = window().expect("No window? Where am I?");
-
-        EventListener::new(&window, "keydown", move |e: &Event| {
-            if let Ok(e) = e.clone().dyn_into::<KeyboardEvent>() {
-                on_keypress.emit(e);
-            }
-        })
-        .forget();
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -198,6 +135,23 @@ impl Component for Paudle {
                 <Scoreboard word={self.word.clone()} guesses={self.guesses.clone()} max_guesses={self.max_guesses} game_state={self.game_state.clone()} />
             </div>
         }
+    }
+
+    fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
+        if !first_render {
+            return;
+        }
+
+        let on_keypress = ctx.link().batch_callback(handle_keypress);
+
+        let window = window().expect("No window? Where am I?");
+
+        EventListener::new(&window, "keydown", move |e: &Event| {
+            if let Ok(e) = e.clone().dyn_into::<KeyboardEvent>() {
+                on_keypress.emit(e);
+            }
+        })
+        .forget();
     }
 }
 
