@@ -13,7 +13,6 @@ Todo
 ----
 
 Still missing:
-- Allowing you to pick up where you left off (if you navigate away or refresh)
 - Tracking how well you did across game sessions
 - Hard mode
 - Animations
