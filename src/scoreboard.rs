@@ -74,13 +74,16 @@ pub fn scoreboard_footer(props: &ScoreboardFooterProps) -> Html {
     let guesses = props.guesses.clone();
     let won = props.won;
     let max_guesses = props.max_guesses;
+    let label = use_state(|| "Share score".to_string());
+    let cblabel = label.clone();
     let cb = Callback::from(move |_: MouseEvent| {
         let clipboard = window().unwrap().navigator().clipboard().unwrap();
         let boxes = generate_score_copy(won, max_guesses, &guesses);
         #[allow(clippy::let_underscore_drop)]
         let _ = clipboard.write_text(&boxes);
+        cblabel.set("Copied!".to_string());
     });
     html! {
-        <div onclick={cb}>{"Share score"}</div>
+        <div class="share-score" onclick={cb}>{&*label}</div>
     }
 }
