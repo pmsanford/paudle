@@ -1,4 +1,4 @@
-use web_sys::window;
+use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use yew::prelude::*;
 
 use crate::{board::CellValue, GameState};
@@ -77,13 +77,30 @@ pub fn scoreboard_footer(props: &ScoreboardFooterProps) -> Html {
     let label = use_state(|| "Share score".to_string());
     let cblabel = label.clone();
     let cb = Callback::from(move |_: MouseEvent| {
-        let clipboard = window().unwrap().navigator().clipboard().unwrap();
         let boxes = generate_score_copy(won, max_guesses, &guesses);
-        #[allow(clippy::let_underscore_drop)]
-        let _ = clipboard.write_text(&boxes);
+        wasm_bindgen_futures::spawn_local(async move {
+            copy_to_clipboard(boxes).await.unwrap();
+        });
         cblabel.set("Copied!".to_string());
     });
     html! {
         <div class="share-score" onclick={cb}>{&*label}</div>
     }
+}
+
+#[wasm_bindgen(inline_js=r#"
+export function copy_to_clipboard(value) {
+    try {
+        return window.navigator.clipboard.writeText(value);
+    } catch(e) {
+        console.log(e);
+        return Promise.reject(e)
+    }
+
+}
+"#)]
+#[rustfmt::skip] // required to keep the "async" keyword
+extern "C" { 
+    #[wasm_bindgen(catch)]
+    async fn copy_to_clipboard(value: String) -> Result<(), JsValue>;
 }
