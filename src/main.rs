@@ -5,6 +5,8 @@ mod save;
 mod scoreboard;
 
 use gloo_events::EventListener;
+use patternfly_yew::BackdropViewer;
+use patternfly_yew::{Backdrop, BackdropDispatcher, Bullseye, Modal, ModalVariant};
 use rand::{prelude::IteratorRandom, thread_rng};
 use save::load_saved_sate;
 use save::update_saved_state;
@@ -15,7 +17,7 @@ use yew::prelude::*;
 
 use board::{Board, CellValue};
 use keyboard::{Keyboard, KeyboardStatus, BACKSPACE, ENTER};
-use scoreboard::Scoreboard;
+use scoreboard::{Scoreboard, ScoreboardFooter};
 
 const WORD_LIST: &str = include_str!("awords.txt");
 pub struct Paudle {
@@ -110,6 +112,18 @@ impl Component for Paudle {
                     let current_guess = mem::take(&mut self.current_guess);
                     self.eval_and_add_guess(&current_guess);
                     update_saved_state(self);
+                    if self.game_state != GameState::InProgress {
+                        let bd = Backdrop {
+                            content: html! {
+                                <Bullseye>
+                                    <Modal title={"Game Over"} variant={ModalVariant::Small} footer={Some(html!{<ScoreboardFooter guesses={self.guesses.clone()} won={self.game_state == GameState::Won} max_guesses={self.max_guesses} />})}>
+                                        <Scoreboard word={self.word.clone()} guesses={self.guesses.clone()} max_guesses={self.max_guesses} game_state={self.game_state.clone()} />
+                                    </Modal>
+                                </Bullseye>
+                            },
+                        };
+                        BackdropDispatcher::default().open(bd);
+                    }
                     true
                 } else {
                     false
@@ -121,7 +135,6 @@ impl Component for Paudle {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let cb = ctx.link().callback(|msg: PaudleMsg| msg);
 
-        // tabIndex=0 for keyboard events: https://stackoverflow.com/questions/43503964/onkeydown-event-not-working-on-divs-in-react/44434971#44434971
         html! {
             <div class="page">
                 <Board
@@ -132,7 +145,7 @@ impl Component for Paudle {
                     bad_guess={self.bad_guess}
                 />
                 <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
-                <Scoreboard word={self.word.clone()} guesses={self.guesses.clone()} max_guesses={self.max_guesses} game_state={self.game_state.clone()} />
+                <BackdropViewer />
             </div>
         }
     }
