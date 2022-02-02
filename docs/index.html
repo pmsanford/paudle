@@ -1,0 +1,132 @@
+<!DOCTYPE html><html><head>
+   <link rel="stylesheet" href="/paudle/patternfly-d4ebb58f922fc0ce.css">
+   <link rel="stylesheet" href="/paudle/patternfly-addons-6a81b97f5dc2d60f.css">
+   
+   <style type="text/css">
+    :root {
+      --tile-empty-bg: white;
+      --tile-empty-fg: black;
+      --tile-empty-border: #d3d6da;
+      --tile-present-bg: #c9b458;
+      --tile-present-fg: white;
+      --tile-correct-bg: #6aaa64;
+      --tile-correct-fg: white;
+      --tile-absent-bg: #787c7e;
+      --tile-absent-fg: white;
+      --tile-size: 62px;
+      --tile-border-size: 2px;
+      --grid-gap: 5px;
+      --row-wrong-bg: red;
+      --key-bg: #d3d6da;
+      --key-fg: black;
+      --key-width: 43px;
+      --key-height: 58px;
+      font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .page {
+      width: 100%;
+      height: 100vh;
+    }
+    .wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .game {
+      display: grid;
+      grid-template-columns: repeat(1, 1fr);
+      gap: var(--grid-gap);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--grid-gap);
+    }
+
+    .wrong > .tile[data-status="empty"] {
+      background-color: var(--row-wrong-bg);
+    }
+
+    .tile {
+      height: var(--tile-size);
+      width: var(--tile-size);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-transform: uppercase;
+      font-size: 2rem;
+      font-weight: bold;
+      box-sizing: border-box;
+    }
+
+    .keyboard {
+      margin-top: 24px;
+    }
+    .keyboard-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .key {
+      height: var(--key-height);
+      width: var(--key-width);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-transform: uppercase;
+      font-size: 1rem;
+      font-weight: bold;
+      box-sizing: border-box;
+      margin-right: 6px;
+      user-select: none;
+    }
+
+    .special-key {
+      width: calc(var(--key-width) * 1.5);
+    }
+
+    div[data-status="present"] {
+      background-color: var(--tile-present-bg);
+      color: var(--tile-present-fg);
+    }
+    div[data-status="correct"] {
+      background-color: var(--tile-correct-bg);
+      color: var(--tile-correct-fg);
+    }
+    div[data-status="empty"] {
+      background-color: var(--tile-empty-bg);
+      color: var(--tile-empty-fg);
+      border: var(--tile-border-size) solid var(--tile-empty-border);
+    }
+    div[data-status="absent"] {
+      background-color: var(--tile-absent-bg);
+      color: var(--tile-absent-fg);
+    }
+    div[data-status="unused"] {
+      background-color: var(--key-bg);
+      color: var(--key-fg);
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 1rem;
+    }
+
+    .share-score {
+      cursor: pointer;
+    }
+  </style>
+   <meta charset="utf-8">
+    <title>Paudle</title>
+  
+<link rel="preload" href="/paudle/index-e760d1029a742579_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/paudle/index-e760d1029a742579.js"></head>
+<body>
+<script type="module">import init from '/paudle/index-e760d1029a742579.js';init('/paudle/index-e760d1029a742579_bg.wasm');</script></body></html>
