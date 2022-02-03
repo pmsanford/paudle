@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+   <meta charset="utf-8" />
    <link data-trunk rel="scss" href="node_modules/@patternfly/patternfly/patternfly.scss">
    <link data-trunk rel="scss" href="node_modules/@patternfly/patternfly/patternfly-addons.scss">
    <link data-trunk rel="copy-dir" href="node_modules/@patternfly/patternfly/assets">
@@ -122,10 +123,18 @@
     }
 
     .share-score {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      width: 100%;
+    }
+    .play-button {
+      justify-content: right;
+      text-align: right;
+    }
+    .share-score > span {
       cursor: pointer;
     }
   </style>
-   <meta charset="utf-8" />
     <title>Paudle</title>
   </head>
 </html>

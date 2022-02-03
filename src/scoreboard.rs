@@ -1,7 +1,8 @@
+use patternfly_yew::BackdropDispatcher;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 use yew::prelude::*;
 
-use crate::{board::CellValue, GameState};
+use crate::{board::CellValue, GameState, PaudleMsg};
 
 #[derive(Properties, PartialEq)]
 pub struct ScoreboardProps {
@@ -67,6 +68,7 @@ pub struct ScoreboardFooterProps {
     pub guesses: Vec<Vec<CellValue>>,
     pub won: bool,
     pub max_guesses: usize,
+    pub clear: Callback<PaudleMsg>,
 }
 
 #[function_component(ScoreboardFooter)]
@@ -83,8 +85,13 @@ pub fn scoreboard_footer(props: &ScoreboardFooterProps) -> Html {
         });
         cblabel.set("Copied!".to_string());
     });
+    let clear = props.clear.clone();
+    let ccb = Callback::from(move |_: MouseEvent| {
+        clear.emit(PaudleMsg::Clear);
+        BackdropDispatcher::default().close();
+    });
     html! {
-        <div class="share-score" onclick={cb}>{&*label}</div>
+        <div class="share-score"><span onclick={cb}>{&*label}</span><span class="play-button" onclick={ccb}>{"Play again"}</span></div>
     }
 }
 

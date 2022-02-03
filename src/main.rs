@@ -52,6 +52,7 @@ pub enum PaudleMsg {
     TypeLetter(char),
     Backspace,
     Submit,
+    Clear,
 }
 
 #[derive(PartialEq, Clone)]
@@ -88,22 +89,18 @@ impl Component for Paudle {
         load_saved_sate().map_or_else(Paudle::default, Into::into)
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
-        if self.game_state != GameState::InProgress {
-            return false;
-        }
-        match msg {
-            PaudleMsg::TypeLetter(c) if self.current_guess.len() < self.word_length => {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match (self.game_state == GameState::InProgress, msg) {
+            (true, PaudleMsg::TypeLetter(c)) if self.current_guess.len() < self.word_length => {
                 self.current_guess.push(c.to_ascii_lowercase());
                 true
             }
-            PaudleMsg::TypeLetter(_) => false,
-            PaudleMsg::Backspace => {
+            (true, PaudleMsg::Backspace) => {
                 self.bad_guess = false;
                 self.current_guess.pop();
                 true
             }
-            PaudleMsg::Submit => {
+            (true, PaudleMsg::Submit) => {
                 if self.current_guess.len() == self.word_length {
                     if !WORD_LIST.contains(&self.current_guess) {
                         self.bad_guess = true;
@@ -113,11 +110,31 @@ impl Component for Paudle {
                     self.eval_and_add_guess(&current_guess);
                     update_saved_state(self);
                     if self.game_state != GameState::InProgress {
+                        let clear = ctx.link().callback(|msg: PaudleMsg| msg);
+                        let title = if self.game_state == GameState::Won {
+                            "Winner!".to_string()
+                        } else {
+                            "Game Over".to_string()
+                        };
                         let bd = Backdrop {
                             content: html! {
                                 <Bullseye>
-                                    <Modal title={"Game Over"} variant={ModalVariant::Small} footer={Some(html!{<ScoreboardFooter guesses={self.guesses.clone()} won={self.game_state == GameState::Won} max_guesses={self.max_guesses} />})}>
-                                        <Scoreboard word={self.word.clone()} guesses={self.guesses.clone()} max_guesses={self.max_guesses} game_state={self.game_state.clone()} />
+                                    <Modal
+                                        title={title}
+                                        variant={ModalVariant::Small}
+                                        footer={Some(html!{<ScoreboardFooter
+                                                                guesses={self.guesses.clone()}
+                                                                won={self.game_state == GameState::Won}
+                                                                max_guesses={self.max_guesses}
+                                                                clear={clear}
+                                                            />})}
+                                    >
+                                        <Scoreboard
+                                            word={self.word.clone()}
+                                            guesses={self.guesses.clone()}
+                                            max_guesses={self.max_guesses}
+                                            game_state={self.game_state.clone()}
+                                        />
                                     </Modal>
                                 </Bullseye>
                             },
@@ -129,6 +146,12 @@ impl Component for Paudle {
                     false
                 }
             }
+            (false, PaudleMsg::Clear) => {
+                let mut new_game = Paudle::default();
+                mem::swap(self, &mut new_game);
+                true
+            }
+            _ => false,
         }
     }
 
