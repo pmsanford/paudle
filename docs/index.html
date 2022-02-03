@@ -1,4 +1,5 @@
 <!DOCTYPE html><html><head>
+   <meta charset="utf-8">
    <link rel="stylesheet" href="/paudle/patternfly-d4ebb58f922fc0ce.css">
    <link rel="stylesheet" href="/paudle/patternfly-addons-6a81b97f5dc2d60f.css">
    
@@ -120,13 +121,21 @@
     }
 
     .share-score {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      width: 100%;
+    }
+    .play-button {
+      justify-content: right;
+      text-align: right;
+    }
+    .share-score > span {
       cursor: pointer;
     }
   </style>
-   <meta charset="utf-8">
     <title>Paudle</title>
   
-<link rel="preload" href="/paudle/index-e760d1029a742579_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/paudle/index-e760d1029a742579.js"></head>
+<link rel="preload" href="/paudle/index-c7ea6be60e00ac52_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/paudle/index-c7ea6be60e00ac52.js"></head>
 <body>
-<script type="module">import init from '/paudle/index-e760d1029a742579.js';init('/paudle/index-e760d1029a742579_bg.wasm');</script></body></html>
+<script type="module">import init from '/paudle/index-c7ea6be60e00ac52.js';init('/paudle/index-c7ea6be60e00ac52_bg.wasm');</script></body></html>
