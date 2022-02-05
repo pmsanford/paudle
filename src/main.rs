@@ -34,7 +34,7 @@ pub struct Paudle {
     game_mode: GameMode,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 enum GameMode {
     Daily(i64),
     Random,
@@ -125,6 +125,7 @@ impl Paudle {
                                                 guesses={self.guesses.clone()}
                                                 won={self.game_state == GameState::Won}
                                                 max_guesses={self.max_guesses}
+                                                random={self.game_mode == GameMode::Random}
                                                 clear={clear}
                                             />})}
                     >

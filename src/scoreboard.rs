@@ -50,15 +50,21 @@ fn generate_unicode_block(guesses: &[Vec<CellValue>]) -> String {
         .join("\n")
 }
 
-fn generate_score_copy(won: bool, max_guesses: usize, guesses: &[Vec<CellValue>]) -> String {
+fn generate_score_copy(
+    won: bool,
+    max_guesses: usize,
+    guesses: &[Vec<CellValue>],
+    modifiers: &str,
+) -> String {
     format!(
-        "Paudle {}/{}\n{}",
+        "Paudle {}/{}{}\n\n{}",
         if won {
             guesses.len().to_string()
         } else {
             "X".to_string()
         },
         max_guesses,
+        modifiers,
         generate_unicode_block(guesses)
     )
 }
@@ -69,6 +75,7 @@ pub struct ScoreboardFooterProps {
     pub won: bool,
     pub max_guesses: usize,
     pub clear: Callback<PaudleMsg>,
+    pub random: bool,
 }
 
 #[function_component(ScoreboardFooter)]
@@ -76,10 +83,16 @@ pub fn scoreboard_footer(props: &ScoreboardFooterProps) -> Html {
     let guesses = props.guesses.clone();
     let won = props.won;
     let max_guesses = props.max_guesses;
+    let random = props.random;
     let label = use_state(|| "Share score".to_string());
     let cblabel = label.clone();
     let cb = Callback::from(move |_: MouseEvent| {
-        let boxes = generate_score_copy(won, max_guesses, &guesses);
+        let modifiers = if random {
+            "r".to_string()
+        } else {
+            String::new()
+        };
+        let boxes = generate_score_copy(won, max_guesses, &guesses, &modifiers);
         wasm_bindgen_futures::spawn_local(async move {
             copy_to_clipboard(boxes).await.unwrap();
         });
