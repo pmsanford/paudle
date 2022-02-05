@@ -2,6 +2,7 @@ use std::rc::Rc;
 
 pub const ENTER: &str = "Enter";
 pub const BACKSPACE: &str = "Backspace";
+pub const ESCAPE: &str = "Escape";
 
 use yew::{
     html::{ImplicitClone, IntoPropValue},

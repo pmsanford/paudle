@@ -91,7 +91,7 @@ pub fn scoreboard_footer(props: &ScoreboardFooterProps) -> Html {
         BackdropDispatcher::default().close();
     });
     html! {
-        <div class="share-score"><span onclick={cb}>{&*label}</span><span class="play-button" onclick={ccb}>{"Play random word"}</span></div>
+        <div class="share-score"><span onclick={cb}>{&*label}</span><span class="play-button" onclick={ccb}>{"Play random"}</span></div>
     }
 }
 

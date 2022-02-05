@@ -18,7 +18,7 @@ use web_sys::window;
 use yew::prelude::*;
 
 use board::{Board, CellValue};
-use keyboard::{Keyboard, KeyboardStatus, BACKSPACE, ENTER};
+use keyboard::{Keyboard, KeyboardStatus, BACKSPACE, ENTER, ESCAPE};
 use scoreboard::{Scoreboard, ScoreboardFooter};
 
 const WORD_LIST: &str = include_str!("awords.txt");
@@ -60,6 +60,7 @@ pub enum PaudleMsg {
     Backspace,
     Submit,
     StartRandom,
+    Escape,
 }
 
 #[derive(PartialEq, Clone)]
@@ -193,6 +194,10 @@ impl Component for Paudle {
                 mem::swap(self, &mut new_game);
                 true
             }
+            (_, PaudleMsg::Escape) => {
+                BackdropDispatcher::default().close();
+                true
+            }
             _ => false,
         }
     }
@@ -279,6 +284,9 @@ fn evaluate_guess(word: &str, guess: &str) -> Vec<CellValue> {
 
 #[allow(clippy::needless_pass_by_value)]
 fn handle_keypress(e: KeyboardEvent) -> Option<PaudleMsg> {
+    if e.key() == ESCAPE {
+        return Some(PaudleMsg::Escape);
+    }
     if e.key() == BACKSPACE {
         return Some(PaudleMsg::Backspace);
     }
