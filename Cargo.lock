@@ -374,6 +374,7 @@ dependencies = [
 name = "paudle"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "getrandom",
  "gloo-events",
  "gloo-storage",

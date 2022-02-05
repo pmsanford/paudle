@@ -7,9 +7,11 @@ mod scoreboard;
 use gloo_events::EventListener;
 use patternfly_yew::BackdropViewer;
 use patternfly_yew::{Backdrop, BackdropDispatcher, Bullseye, Modal, ModalVariant};
+use rand::SeedableRng;
 use rand::{prelude::IteratorRandom, thread_rng};
-use save::load_saved_sate;
 use save::update_saved_state;
+use save::{load_game_history, load_saved_sate};
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, mem};
 use wasm_bindgen::JsCast;
 use web_sys::window;
@@ -29,22 +31,27 @@ pub struct Paudle {
     max_guesses: usize,
     bad_guess: bool,
     game_state: GameState,
+    game_mode: GameMode,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+enum GameMode {
+    Daily(i64),
+    Random,
+}
+
+fn get_todays_key() -> i64 {
+    chrono::Local::now().date().and_hms(0, 0, 0).timestamp()
 }
 
 impl Default for Paudle {
     fn default() -> Self {
         let word_choices = WORD_LIST.lines();
-        let word = word_choices.choose(&mut thread_rng()).unwrap().to_string();
-        Self {
-            word,
-            guesses: Vec::new(),
-            keyboard_status: KeyboardStatus::default(),
-            current_guess: String::new(),
-            word_length: 5,
-            max_guesses: 6,
-            bad_guess: false,
-            game_state: GameState::InProgress,
-        }
+        let ts = get_todays_key();
+        #[allow(clippy::cast_sign_loss)]
+        let mut rng = rand::prelude::StdRng::seed_from_u64(ts as u64);
+        let word = word_choices.choose(&mut rng).unwrap().to_string();
+        Self::with_word(word, GameMode::Daily(ts))
     }
 }
 
@@ -52,7 +59,7 @@ pub enum PaudleMsg {
     TypeLetter(char),
     Backspace,
     Submit,
-    Clear,
+    StartRandom,
 }
 
 #[derive(PartialEq, Clone)]
@@ -63,6 +70,27 @@ pub enum GameState {
 }
 
 impl Paudle {
+    fn with_word(word: String, game_mode: GameMode) -> Self {
+        Self {
+            word,
+            guesses: Vec::new(),
+            keyboard_status: KeyboardStatus::default(),
+            current_guess: String::new(),
+            word_length: 5,
+            max_guesses: 6,
+            bad_guess: false,
+            game_state: GameState::InProgress,
+            game_mode,
+        }
+    }
+
+    fn random() -> Self {
+        let word_choices = WORD_LIST.lines();
+        let mut rng = thread_rng();
+        let word = word_choices.choose(&mut rng).unwrap().to_string();
+        Self::with_word(word, GameMode::Random)
+    }
+
     fn eval_and_add_guess(&mut self, guess: &str) {
         let new_guess = evaluate_guess(&self.word, &guess.to_lowercase());
         self.add_guess(new_guess);
@@ -78,6 +106,39 @@ impl Paudle {
             self.game_state = GameState::Lost;
         }
     }
+
+    fn show_scoreboard(&mut self, ctx: &Context<Self>) {
+        let clear = ctx.link().callback(|msg: PaudleMsg| msg);
+        let title = if self.game_state == GameState::Won {
+            "Winner!".to_string()
+        } else {
+            "Game Over".to_string()
+        };
+        let bd = Backdrop {
+            content: html! {
+                <Bullseye>
+                    <Modal
+                        title={title}
+                        variant={ModalVariant::Small}
+                        footer={Some(html!{<ScoreboardFooter
+                                                guesses={self.guesses.clone()}
+                                                won={self.game_state == GameState::Won}
+                                                max_guesses={self.max_guesses}
+                                                clear={clear}
+                                            />})}
+                    >
+                        <Scoreboard
+                            word={self.word.clone()}
+                            guesses={self.guesses.clone()}
+                            max_guesses={self.max_guesses}
+                            game_state={self.game_state.clone()}
+                        />
+                    </Modal>
+                </Bullseye>
+            },
+        };
+        BackdropDispatcher::default().open(bd);
+    }
 }
 
 impl Component for Paudle {
@@ -86,7 +147,17 @@ impl Component for Paudle {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        load_saved_sate().map_or_else(Paudle::default, Into::into)
+        let saved_state = load_saved_sate();
+        if let Some(saved_state) = saved_state {
+            saved_state.into()
+        } else {
+            let history = load_game_history();
+            history
+                .scores
+                .get(&get_todays_key())
+                .cloned()
+                .map_or_else(Paudle::default, Into::into)
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -110,44 +181,15 @@ impl Component for Paudle {
                     self.eval_and_add_guess(&current_guess);
                     update_saved_state(self);
                     if self.game_state != GameState::InProgress {
-                        let clear = ctx.link().callback(|msg: PaudleMsg| msg);
-                        let title = if self.game_state == GameState::Won {
-                            "Winner!".to_string()
-                        } else {
-                            "Game Over".to_string()
-                        };
-                        let bd = Backdrop {
-                            content: html! {
-                                <Bullseye>
-                                    <Modal
-                                        title={title}
-                                        variant={ModalVariant::Small}
-                                        footer={Some(html!{<ScoreboardFooter
-                                                                guesses={self.guesses.clone()}
-                                                                won={self.game_state == GameState::Won}
-                                                                max_guesses={self.max_guesses}
-                                                                clear={clear}
-                                                            />})}
-                                    >
-                                        <Scoreboard
-                                            word={self.word.clone()}
-                                            guesses={self.guesses.clone()}
-                                            max_guesses={self.max_guesses}
-                                            game_state={self.game_state.clone()}
-                                        />
-                                    </Modal>
-                                </Bullseye>
-                            },
-                        };
-                        BackdropDispatcher::default().open(bd);
+                        self.show_scoreboard(ctx);
                     }
                     true
                 } else {
                     false
                 }
             }
-            (false, PaudleMsg::Clear) => {
-                let mut new_game = Paudle::default();
+            (false, PaudleMsg::StartRandom) => {
+                let mut new_game = Paudle::random();
                 mem::swap(self, &mut new_game);
                 true
             }
@@ -176,6 +218,10 @@ impl Component for Paudle {
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
         if !first_render {
             return;
+        }
+
+        if self.game_state != GameState::InProgress {
+            self.show_scoreboard(ctx);
         }
 
         let on_keypress = ctx.link().batch_callback(handle_keypress);

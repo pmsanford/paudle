@@ -87,11 +87,11 @@ pub fn scoreboard_footer(props: &ScoreboardFooterProps) -> Html {
     });
     let clear = props.clear.clone();
     let ccb = Callback::from(move |_: MouseEvent| {
-        clear.emit(PaudleMsg::Clear);
+        clear.emit(PaudleMsg::StartRandom);
         BackdropDispatcher::default().close();
     });
     html! {
-        <div class="share-score"><span onclick={cb}>{&*label}</span><span class="play-button" onclick={ccb}>{"Play again"}</span></div>
+        <div class="share-score"><span onclick={cb}>{&*label}</span><span class="play-button" onclick={ccb}>{"Play random word"}</span></div>
     }
 }
 
