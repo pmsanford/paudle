@@ -5,13 +5,14 @@ mod save;
 mod scoreboard;
 
 use gloo_events::EventListener;
-use patternfly_yew::BackdropViewer;
 use patternfly_yew::{Backdrop, BackdropDispatcher, Bullseye, Modal, ModalVariant};
+use patternfly_yew::{BackdropViewer, Toast, ToastDispatcher, ToastViewer, Type};
 use rand::SeedableRng;
 use rand::{prelude::IteratorRandom, thread_rng};
 use save::update_saved_state;
 use save::{load_game_history, load_saved_sate};
 use serde::{Deserialize, Serialize};
+use std::time::Duration;
 use std::{collections::HashMap, mem};
 use wasm_bindgen::JsCast;
 use web_sys::window;
@@ -29,7 +30,6 @@ pub struct Paudle {
     current_guess: String,
     word_length: usize,
     max_guesses: usize,
-    bad_guess: bool,
     game_state: GameState,
     game_mode: GameMode,
 }
@@ -79,7 +79,6 @@ impl Paudle {
             current_guess: String::new(),
             word_length: 5,
             max_guesses: 6,
-            bad_guess: false,
             game_state: GameState::InProgress,
             game_mode,
         }
@@ -169,14 +168,18 @@ impl Component for Paudle {
                 true
             }
             (true, PaudleMsg::Backspace) => {
-                self.bad_guess = false;
                 self.current_guess.pop();
                 true
             }
             (true, PaudleMsg::Submit) => {
                 if self.current_guess.len() == self.word_length {
                     if !WORD_LIST.contains(&self.current_guess) {
-                        self.bad_guess = true;
+                        ToastDispatcher::new().toast(Toast {
+                            title: "Word not in word list".into(),
+                            r#type: Type::Danger,
+                            timeout: Some(Duration::from_secs(2)),
+                            ..Toast::default()
+                        });
                         return true;
                     }
                     let current_guess = mem::take(&mut self.current_guess);
@@ -213,10 +216,10 @@ impl Component for Paudle {
                     guesses={self.guesses.clone()}
                     row_count={self.max_guesses}
                     word_length={self.word_length}
-                    bad_guess={self.bad_guess}
                 />
                 <Keyboard key_press={cb} keys={self.keyboard_status.clone()} />
                 <BackdropViewer />
+                <ToastViewer />
             </div>
         }
     }

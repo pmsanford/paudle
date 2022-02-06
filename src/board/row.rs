@@ -5,7 +5,6 @@ use super::cell::{Cell, CellValue};
 #[derive(Properties, PartialEq)]
 pub struct RowProps {
     pub values: Vec<CellValue>,
-    pub wrong: bool,
 }
 
 pub struct Row;
@@ -20,12 +19,8 @@ impl Component for Row {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let mut classes = vec!["row"];
-        if ctx.props().wrong {
-            classes.push("wrong");
-        }
         html! {
-            <div class={classes!(classes)}>
+            <div class="row">
                 { ctx.props().values.clone().iter().map(|c| html! { <Cell value={c} /> }).collect::<Html>() }
             </div>
         }

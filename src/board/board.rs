@@ -9,7 +9,6 @@ pub struct BoardProps {
     pub guesses: Vec<Vec<CellValue>>,
     pub row_count: usize,
     pub word_length: usize,
-    pub bad_guess: bool,
 }
 
 #[function_component(Board)]
@@ -31,10 +30,8 @@ pub fn view(props: &BoardProps) -> Html {
                 <div class="game">
                     {
                         rows.into_iter()
-                            .enumerate()
-                            .map(|(idx, r)| {
-                                let wrong = idx == props.guesses.len() && props.bad_guess;
-                                html! { <Row wrong={wrong} values={r} /> }
+                            .map(|r| {
+                                html! { <Row values={r} /> }
                             }).collect::<Html>()
                     }
                 </div>
