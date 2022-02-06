@@ -22,6 +22,7 @@
       --key-fg: black;
       --key-width: 43px;
       --key-height: 58px;
+      --bar-base-width: 18px;
       font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
     }
 
@@ -113,11 +114,53 @@
     }
 
     .scoreboard {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
       margin-bottom: 8px;
       font-size: 1rem;
+    }
+    .scoreboard-header {
+      margin-top: 10px;
+      grid-column: 1 / span 4;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .scoreboard > div {
+      text-align: center;
+    }
+    .scoreboard > .scoreboard-distribution {
+      text-align: left;
+    }
+    .scoreboard-distribution {
+      grid-column: 1 / span 4;
+    }
+    .distribution-row {
+      display: flex;
+    }
+    .distribution-row-num {
+      width: 15px;
+    }
+    .distribution-row-bar {
+      flex-grow: 1;
+    }
+    .distribution-bar {
+      margin: 1px;
+      padding-right: 3px;
+      text-align: right;
+      background-color: var(--key-bg);
+    }
+
+    .scoreboard-stat {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    .scoreboard-stat > div:first-child {
+      font-size: 300%;
+    }
+
+    .scoreboard-stat > div:nth-child(2) {
+
     }
 
     .share-score {
@@ -135,7 +178,7 @@
   </style>
     <title>Paudle</title>
   
-<link rel="preload" href="/paudle/index-d6bb25c25ed20e30_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
-<link rel="modulepreload" href="/paudle/index-d6bb25c25ed20e30.js"></head>
+<link rel="preload" href="/paudle/index-82b2658ccae78543_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+<link rel="modulepreload" href="/paudle/index-82b2658ccae78543.js"></head>
 <body>
-<script type="module">import init from '/paudle/index-d6bb25c25ed20e30.js';init('/paudle/index-d6bb25c25ed20e30_bg.wasm');</script></body></html>
+<script type="module">import init from '/paudle/index-82b2658ccae78543.js';init('/paudle/index-82b2658ccae78543_bg.wasm');</script></body></html>
