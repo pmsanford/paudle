@@ -11,17 +11,13 @@ Todo
 ----
 
 Still missing:
-- Tracking how well you did across game sessions
 - Hard mode
 - Animations
-
-Maybe add:
-- Configurable word length/number of guesses
-- Highlighting already tried letters when typing
 
 Needs cleanup:
 - Clones everywhere on prop passing
 - Lots of prop drilling
+- Scoreboard spaghetti
 
 [The word corpus](src/awords.txt) is taken from [this repo](https://github.com/oldfartdeveloper/wordle-generate-word-list) under the MIT license.
 

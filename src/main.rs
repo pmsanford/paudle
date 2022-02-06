@@ -35,7 +35,7 @@ pub struct Paudle {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
-enum GameMode {
+pub enum GameMode {
     Daily(i64),
     Random,
 }
@@ -128,12 +128,7 @@ impl Paudle {
                                                 clear={clear}
                                             />})}
                     >
-                        <Scoreboard
-                            word={self.word.clone()}
-                            guesses={self.guesses.clone()}
-                            max_guesses={self.max_guesses}
-                            game_state={self.game_state.clone()}
-                        />
+                        <Scoreboard />
                     </Modal>
                 </Bullseye>
             },
