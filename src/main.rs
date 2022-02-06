@@ -112,7 +112,7 @@ impl Paudle {
         let title = if self.game_state == GameState::Won {
             "Winner!".to_string()
         } else {
-            "Game Over".to_string()
+            format!(r#"Game Over. Word was "{}""#, self.word)
         };
         let bd = Backdrop {
             content: html! {
