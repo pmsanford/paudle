@@ -5,7 +5,7 @@ A reimplementation of the excellent word game [Wordle](https://www.powerlanguage
 
 Running
 -------
-First, [install the webassembly target and trunk](https://yew.rs/docs/getting-started/introduction). Then, clone the repo and run `trunk serve` and navigate to http://localhost:8080 using your browser.
+First, [install the webassembly target and trunk](https://yew.rs/docs/getting-started/introduction). Clone the repo, run `yarn install`, run `trunk serve`, and navigate to http://localhost:8080 using your browser.
 
 Todo
 ----
